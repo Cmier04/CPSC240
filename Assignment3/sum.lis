@@ -1,0 +1,125 @@
+     1                                  ;****************************************************************************************************************************
+     2                                  ;Program name: "Assignment3, The Arrays Program". This program demonstrates the use of user input into an array and         *
+     3                                  ;getting the sum of an array as well as sorting it using Assembly, C, and C++.                                              *
+     4                                  ;Copyright (C) 2024  Christine Mier                                                                                         *
+     5                                  ;This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License  *
+     6                                  ;version 3 as published by the Free Software Foundation.                                                                    *
+     7                                  ;This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied         *
+     8                                  ;warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.     *
+     9                                  ;A copy of the GNU General Public License v3 is available here:  <https://www.gnu.org/licenses/>.                           *
+    10                                  ;****************************************************************************************************************************
+    11                                  
+    12                                  
+    13                                  
+    14                                  
+    15                                  ;========1=========2=========3=========4=========5=========6=========7=========8=========9=========0=========1=========2=========3=========4=========5=========6=========7**
+    16                                  ;Author information
+    17                                  ;  Author name: Christine Mier
+    18                                  ;  Author email: cmier@csu.fullerton.edu
+    19                                  ;
+    20                                  ;Program information
+    21                                  ; Program name: Assignment 3, The Array Program
+    22                                  ;  Programming languages X86 with one module in C++ and one module in C
+    23                                  ;  Date development of version 1 began 2024-Oct-04
+    24                                  ;  Date development of version 1 completed 2024-Oct-13
+    25                                  ;
+    26                                  ;Purpose
+    27                                  ;  This program is a 'Array' program which demonstrates the use of user input into an array and getting the sum of an array as well as sorting it using Assembly, C, and C++.
+    28                                  ;
+    29                                  ;Project information
+    30                                  ;  Files: main.c, manager.asm, input_array.asm, isinteger.asm, output_array.asm, sum.asm, sort.cpp, run.sh
+    31                                  ;  Status: The program has been tested extensively with no detectable errors. However, it does not print output of array correctly and does not call for sum of array correctly
+    32                                  ;
+    33                                  ;Translator information
+    34                                  ;  Linux: nasm -f elf64 -l sum.lis -o sum.o sum.asm
+    35                                  
+    36                                  ;References and credits
+    37                                  ; Holliday
+    38                                  
+    39                                  ;Format information
+    40                                  ;  Page width: 172 columns
+    41                                  ;  Begin comments: 61
+    42                                  ;  Optimal print specification: Landscape, 7 points, monospace, 8Â½x11 paper
+    43                                  ;
+    44                                  ;===== Begin code area ====================================================================================================================================================
+    45                                  
+    46                                  extern printf
+    47                                  extern fgets
+    48                                  extern scanf
+    49                                  extern stdin
+    50                                  extern atol
+    51                                  extern manager
+    52                                  extern input_array
+    53                                  extern output_array
+    54                                  global sort
+    55                                  global sum
+    56                                  
+    57                                  segment .data
+    58                                  
+    59                                  segment .bss
+    60                                  
+    61                                  segment .text
+    62                                  sum:
+    63                                  ;16 push
+    64 00000000 55                      push rbp
+    65 00000001 4889E5                  mov rbp, rsp
+    66 00000004 53                      push rbx
+    67 00000005 51                      push rcx
+    68 00000006 52                      push rdx
+    69 00000007 57                      push rdi
+    70 00000008 56                      push rsi
+    71 00000009 4150                    push r8
+    72 0000000B 4151                    push r9
+    73 0000000D 4152                    push r10
+    74 0000000F 4153                    push r11
+    75 00000011 4154                    push r12
+    76 00000013 4155                    push r13
+    77 00000015 4156                    push r14
+    78 00000017 4157                    push r15
+    79 00000019 9C                      pushf
+    80                                  
+    81                                  ;save all int numbers
+    82                                  
+    83                                  ;back
+    84 0000001A 4989FE                  mov     r14, rdi
+    85 0000001D 4989F7                  mov     r15, rsi        ;r15 = how many
+    86 00000020 4D31ED                  xor     r13, r13        ;r13 = loop counter
+    87                                  
+    88 00000023 4D31C0                  xor     r8, r8          ;r8 = accumalater
+    89                                  
+    90                                  beginloop:
+    91                                      ;check if array is full to end loop
+    92 00000026 4D39FD                      cmp     r13, r15         ;comparing the two to see if you can exit loop
+    93 00000029 7D0B                        jge     endloop
+    94                                  
+    95                                      ;add elements in array
+    96 0000002B F2470F583CEE                addsd   xmm15, [r14 + r13 * 8]
+    97 00000031 49FFC5                      inc     r13
+    98                                  
+    99                                      ;repeat loop
+   100 00000034 EBF0                        jmp beginloop
+   101                                  endloop:
+   102 00000036 6A00                        push    qword 0
+   103 00000038 F2440F113C24                movsd   [rsp], xmm15
+   104                                      ;mov     rax, r8        originally placed here by professor
+   105                                      ;restore sum
+   106 0000003E F20F100424                  movsd   xmm0, [rsp]
+   107 00000043 58                          pop     rax
+   108                                  
+   109 00000044 9D                      popf
+   110 00000045 415F                    pop r15
+   111 00000047 415E                    pop r14
+   112 00000049 415D                    pop r13
+   113 0000004B 415C                    pop r12
+   114 0000004D 415B                    pop r11
+   115 0000004F 415A                    pop r10
+   116 00000051 4159                    pop r9
+   117 00000053 4158                    pop r8
+   118 00000055 5E                      pop rsi
+   119 00000056 5F                      pop rdi
+   120 00000057 5A                      pop rdx
+   121 00000058 59                      pop rcx
+   122 00000059 5B                      pop rbx
+   123 0000005A 5D                      pop rbp
+   124                                  
+   125 0000005B C3                      ret

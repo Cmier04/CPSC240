@@ -1,0 +1,339 @@
+     1                                  ;****************************************************************************************************************************
+     2                                  ;Program name: "Assignment 4, Non-Deterministic Random Numbers". This program generates random IEEE754 numbers and          *
+     3                                  ;displays their scientific decimal form, as well as sorts and displays the array of random numbers.                         *
+     4                                  ;Copyright (C) 2024  Christine Mier                                                                                         *
+     5                                  ;This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License  *
+     6                                  ;version 3 as published by the Free Software Foundation.                                                                    *
+     7                                  ;This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied         *
+     8                                  ;warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.     *
+     9                                  ;A copy of the GNU General Public License v3 is available here:  <https://www.gnu.org/licenses/>.                           *
+    10                                  ;****************************************************************************************************************************
+    11                                  
+    12                                  
+    13                                  
+    14                                  ;========1=========2=========3=========4=========5=========6=========7=========8=========9=========0=========1=========2=========3=========4=========5=========6=========7**
+    15                                  ;Author information
+    16                                  ;  Author name: Christine Mier
+    17                                  ;  Author email: cmier@csu.fullerton.edu
+    18                                  ;
+    19                                  ;Program information
+    20                                  ; Program name: Assignment 4, Non-Deterministic Random Numbers
+    21                                  ;  Programming languages X86 with two modules in C++
+    22                                  ;  Date development of version 1 began 2024-Oct-22
+    23                                  ;  Date development of version 1 completed 2024-Nov-03
+    24                                  ;
+    25                                  ;Purpose
+    26                                  ;  This program generates random IEEE754 numbers and displays their scientific decimal form as well as sorts and displays the array of random numbers.
+    27                                  ;
+    28                                  ;Project information
+    29                                  ;  Files: main.cpp, executive.asm, fill_random_array.asm, show_array.asm, normalize_array.asm, isnan.asm, sort.cpp, run.sh
+    30                                  ;  Status: The program has been tested extensively with no detectable errors. However, it does not normalize the array and sorts/prints the normalized array as
+    31                                  ;          this function call has been removed due to an infinite loop issue.
+    32                                  ;
+    33                                  ;Translator information
+    34                                  ;  Linux: nasm -f elf64 -l executive.lis -o executive.o executive.asm
+    35                                  
+    36                                  ;References and credits
+    37                                  
+    38                                  ;Format information
+    39                                  ;  Page width: 172 columns
+    40                                  ;  Begin comments: 61
+    41                                  ;  Optimal print specification: Landscape, 7 points, monospace, 8Â½x11 paper
+    42                                  ;
+    43                                  ;===== Begin code area ====================================================================================================================================================
+    44                                  
+    45                                  extern printf
+    46                                  extern fgets
+    47                                  extern scanf
+    48                                  extern stdin
+    49                                  extern strlen
+    50                                  extern fill_random_array
+    51                                  extern show_array
+    52                                  extern normalize_array
+    53                                  extern sort
+    54                                  max_name_size equ 32
+    55                                  max_title_size equ 32
+    56                                  
+    57                                  global executive
+    58                                  
+    59                                  segment .data
+    60 00000000 506C6561736520656E-         name db "Please enter your name: ", 0
+    60 00000009 74657220796F757220-
+    60 00000012 6E616D653A2000     
+    61 00000019 506C6561736520656E-         title db "Please enter your title (Mr, Ms, Sargent, Chief, Project, Leader, etc): ", 0
+    61 00000022 74657220796F757220-
+    61 0000002B 7469746C6520284D72-
+    61 00000034 2C204D732C20536172-
+    61 0000003D 67656E742C20436869-
+    61 00000046 65662C2050726F6A65-
+    61 0000004F 63742C204C65616465-
+    61 00000058 722C20657463293A20-
+    61 00000061 00                 
+    62 00000062 4E69636520746F206D-         nice db "Nice to meet you %s %s.", 10, 0
+    62 0000006B 65657420796F752025-
+    62 00000074 732025732E0A00     
+    63 0000007B 546869732070726F67-         prgrm_msg db "This program will generate 64 bit IEEE float numbers.", 10, 0
+    63 00000084 72616D2077696C6C20-
+    63 0000008D 67656E657261746520-
+    63 00000096 363420626974204945-
+    63 0000009F 454520666C6F617420-
+    63 000000A8 6E756D626572732E0A-
+    63 000000B1 00                 
+    64 000000B2 486F77206D616E7920-         nmbrs db "How many numbers do you want? Today's limit is 100 per customer: ", 0
+    64 000000BB 6E756D626572732064-
+    64 000000C4 6F20796F752077616E-
+    64 000000CD 743F20546F64617927-
+    64 000000D6 73206C696D69742069-
+    64 000000DF 732031303020706572-
+    64 000000E8 20637573746F6D6572-
+    64 000000F1 3A2000             
+    65 000000F4 596F7572206E756D62-         stored_msg db "Your numbers have been stored in an array. Here is that array: ",10, 0
+    65 000000FD 657273206861766520-
+    65 00000106 6265656E2073746F72-
+    65 0000010F 656420696E20616E20-
+    65 00000118 61727261792E204865-
+    65 00000121 726520697320746861-
+    65 0000012A 742061727261793A20-
+    65 00000133 0A00               
+    66 00000135 546865206172726179-         try_again db "The array size you entered is out of bounds. Please try again.", 10, 0
+    66 0000013E 2073697A6520796F75-
+    66 00000147 20656E746572656420-
+    66 00000150 6973206F7574206F66-
+    66 00000159 20626F756E64732E20-
+    66 00000162 506C65617365207472-
+    66 0000016B 7920616761696E2E0A-
+    66 00000174 00                 
+    67 00000175 546865206172726179-         normalized db "The array will now be normalized to the range 1.0 to 2.0  Here is the normalized array", 10, 0               ;unused due to issue in normalize_array file/function
+    67 0000017E 2077696C6C206E6F77-
+    67 00000187 206265206E6F726D61-
+    67 00000190 6C697A656420746F20-
+    67 00000199 7468652072616E6765-
+    67 000001A2 20312E3020746F2032-
+    67 000001AB 2E3020204865726520-
+    67 000001B4 697320746865206E6F-
+    67 000001BD 726D616C697A656420-
+    67 000001C6 61727261790A00     
+    68 000001CD 546865206172726179-         sorted db "The array will now be sorted.", 10, 0
+    68 000001D6 2077696C6C206E6F77-
+    68 000001DF 20626520736F727465-
+    68 000001E8 642E0A00           
+    69 000001EC 476F6F646279652025-         goodbye db "Goodbye %s. You are welcome any time.", 10, 0
+    69 000001F5 732E20596F75206172-
+    69 000001FE 652077656C636F6D65-
+    69 00000207 20616E792074696D65-
+    69 00000210 2E0A00             
+    70                                  
+    71 00000213 446F65732074686973-         testline db "Does this print", 0                ;used to test where program was breaking
+    71 0000021C 207072696E7400     
+    72                                  
+    73 00000223 257300                      stringformat db "%s", 0
+    74 00000226 256C6400                    intformat db "%ld", 0
+    75                                  
+    76                                  segment .bss
+    77                                      align 64
+    78 00000000 <res 340h>                  backup_storage_area resb 832
+    79 00000340 <res 20h>                   username resb max_name_size
+    80 00000360 <res 20h>                   usertitle resb max_title_size
+    81 00000380 <res 320h>                  my_array resq 100
+    82                                  
+    83                                  segment .text
+    84                                  executive:
+    85 00000000 55                      push rbp
+    86 00000001 4889E5                  mov rbp, rsp
+    87 00000004 53                      push rbx
+    88 00000005 51                      push rcx
+    89 00000006 52                      push rdx
+    90 00000007 57                      push rdi
+    91 00000008 56                      push rsi
+    92 00000009 4150                    push r8
+    93 0000000B 4151                    push r9
+    94 0000000D 4152                    push r10
+    95 0000000F 4153                    push r11
+    96 00000011 4154                    push r12
+    97 00000013 4155                    push r13
+    98 00000015 4156                    push r14
+    99 00000017 4157                    push r15
+   100 00000019 9C                      pushf
+   101                                  
+   102                                  ;*****************************************************Introduction of Program*****************************************************
+   103                                  ;Prompt user for name
+   104 0000001A B800000000              mov     rax, 0
+   105                                  
+   106 0000001F 48BF-                   mov     rdi, name
+   106 00000021 [0000000000000000] 
+   107 00000029 E8(00000000)            call    printf
+   108                                  
+   109                                  ;input username
+   110 0000002E B800000000              mov     rax, 0
+   111 00000033 48BF-                   mov     rdi, username
+   111 00000035 [4003000000000000] 
+   112 0000003D BE20000000              mov     rsi, max_name_size
+   113 00000042 488B1425[00000000]      mov     rdx, [stdin]
+   114 0000004A E8(00000000)            call    fgets
+   115                                  
+   116 0000004F B800000000              mov     rax, 0
+   117 00000054 48BF-                   mov     rdi, username
+   117 00000056 [4003000000000000] 
+   118 0000005E E8(00000000)            call    strlen
+   119 00000063 C680[3F030000]00        mov [username+rax-1], byte 0                ;removes newline at the end of fgets
+   120                                  
+   121                                  ;prompt user for title
+   122 0000006A B800000000              mov     rax, 0
+   123                                  
+   124 0000006F 48BF-                   mov     rdi, title
+   124 00000071 [1900000000000000] 
+   125 00000079 E8(00000000)            call    printf
+   126                                  
+   127 0000007E B800000000              mov     rax, 0
+   128 00000083 48BF-                   mov     rdi, usertitle
+   128 00000085 [6003000000000000] 
+   129 0000008D BE20000000              mov     rsi, max_title_size
+   130 00000092 488B1425[00000000]      mov     rdx, [stdin]
+   131 0000009A E8(00000000)            call    fgets
+   132                                  
+   133 0000009F B800000000              mov     rax, 0
+   134 000000A4 48BF-                   mov     rdi, usertitle
+   134 000000A6 [6003000000000000] 
+   135 000000AE E8(00000000)            call    strlen
+   136 000000B3 C680[5F030000]00        mov [usertitle+rax-1], byte 0               ;removes newline at the end of fgets
+   137                                  
+   138                                  ;output nice to meet you message
+   139 000000BA B800000000              mov     rax, 0
+   140 000000BF 48BF-                   mov     rdi, nice
+   140 000000C1 [6200000000000000] 
+   141 000000C9 48BE-                   mov     rsi, usertitle
+   141 000000CB [6003000000000000] 
+   142 000000D3 48BA-                   mov     rdx, username
+   142 000000D5 [4003000000000000] 
+   143 000000DD E8(00000000)            call    printf
+   144                                  
+   145                                  ;missing info
+   146                                  
+   147                                  
+   148                                  ;*****************************************************Array Size*****************************************************
+   149                                  ;output prgrm_msg
+   150 000000E2 B800000000              mov     rax, 0
+   151 000000E7 48BF-                   mov     rdi, stringformat               ;unnnecessary, could use rdi, program_msg instead
+   151 000000E9 [2302000000000000] 
+   152 000000F1 48BE-                   mov     rsi, prgrm_msg
+   152 000000F3 [7B00000000000000] 
+   153 000000FB E8(00000000)            call    printf
+   154                                  
+   155                                  get_size:
+   156                                  ;output nmbrs which prompts the user to input an array size
+   157 00000100 B800000000              mov     rax, 0
+   158 00000105 48BF-                   mov     rdi, stringformat
+   158 00000107 [2302000000000000] 
+   159 0000010F 48BE-                   mov     rsi, nmbrs
+   159 00000111 [B200000000000000] 
+   160 00000119 E8(00000000)            call    printf
+   161                                  
+   162                                  ;convert float to int and prepare to compare the size to the allowed size limit
+   163 0000011E 6A00                    push    qword 0
+   164 00000120 6A00                    push    qword 0
+   165 00000122 B800000000              mov     rax, 0
+   166 00000127 48BF-                   mov     rdi, intformat                  ;used to format integers in the array after converting to int from float
+   166 00000129 [2602000000000000] 
+   167 00000131 4889E6                  mov     rsi, rsp
+   168 00000134 E8(00000000)            call    scanf                           ;reads the generated numbers in array
+   169 00000139 4C8B3C24                mov     r15, [rsp]
+   170 0000013D 58                      pop     rax
+   171 0000013E 58                      pop     rax
+   172                                  
+   173                                  ;if size of array is not within limits of 0-100
+   174 0000013F 4983FF00                cmp     r15, 0                          ;checks if the inputted size is less than the limit
+   175 00000143 7C08                    jl      wrong_size
+   176 00000145 4983FF64                cmp     r15, 100                        ;checks if inputted size is greater than limit
+   177 00000149 7F02                    jg      wrong_size
+   178                                  
+   179                                  ;if size of array is within limits of 0-100
+   180 0000014B EB16                    jmp     continue
+   181                                  
+   182                                  ;if array size given is greater than or less than limit, jump to this loop
+   183                                  wrong_size:
+   184 0000014D B800000000              mov     rax, 0
+   185 00000152 48BF-                   mov     rdi, try_again
+   185 00000154 [3501000000000000] 
+   186 0000015C E8(00000000)            call    printf
+   187 00000161 EB9D                    jmp     get_size
+   188                                  
+   189                                  ;if array size is within the limit:
+   190                                  continue:
+   191 00000163 B800000000              mov     rax, 0
+   192 00000168 48BF-                   mov     rdi, my_array
+   192 0000016A [8003000000000000] 
+   193 00000172 4C89FE                  mov     rsi, r15
+   194 00000175 E8(00000000)            call    fill_random_array               ;call the fill_random_array function in the other file to store array
+   195                                  
+   196                                  
+   197                                  ;*****************************************************Call Show_array*****************************************************
+   198                                  ;output stored_msg to confirm array size was stored and an array of random numbers will be printed
+   199 0000017A B800000000              mov     rax, 0
+   200 0000017F 48BF-                   mov     rdi, stringformat               ;again, not really needed
+   200 00000181 [2302000000000000] 
+   201 00000189 48BE-                   mov     rsi, stored_msg
+   201 0000018B [F400000000000000] 
+   202 00000193 E8(00000000)            call    printf
+   203                                  
+   204                                  ;print array of random numbers by calling show_array
+   205 00000198 B800000000              mov     rax, 0
+   206 0000019D 48BF-                   mov     rdi, my_array
+   206 0000019F [8003000000000000] 
+   207 000001A7 4C89FE                  mov     rsi, r15
+   208 000001AA E8(00000000)            call    show_array
+   209                                  
+   210                                  ;*****************************************************Normalize Array*****************************************************
+   211                                  ;Removed from program because it created an infinite loop
+   212                                  
+   213                                  ;*****************************************************Sort Array*****************************************************
+   214                                  ;sort array
+   215 000001AF 48BF-                   mov     rdi, my_array
+   215 000001B1 [8003000000000000] 
+   216 000001B9 4C89FE                  mov     rsi, r15
+   217 000001BC E8(00000000)            call    sort
+   218                                  
+   219                                  ;output sorted
+   220 000001C1 B800000000              mov     rax, 0
+   221 000001C6 48BF-                   mov     rdi, sorted
+   221 000001C8 [CD01000000000000] 
+   222 000001D0 E8(00000000)            call    printf
+   223                                  
+   224                                  ;output sorted array
+   225 000001D5 B800000000              mov     rax, 0
+   226 000001DA 48BF-                   mov     rdi, my_array
+   226 000001DC [8003000000000000] 
+   227 000001E4 4C89FE                  mov     rsi, r15
+   228 000001E7 E8(00000000)            call    show_array
+   229                                  
+   230                                  ;*****************************************************Goodbye Message*****************************************************
+   231                                  ;output goodbye
+   232 000001EC B800000000              mov     rax, 0
+   233 000001F1 48BF-                   mov     rdi, goodbye
+   233 000001F3 [EC01000000000000] 
+   234 000001FB 48BE-                   mov     rsi, usertitle
+   234 000001FD [6003000000000000] 
+   235 00000205 E8(00000000)            call    printf
+   236                                  
+   237                                  ;*****************************************************End of Program*****************************************************
+   238                                  ;restore GPRs
+   239 0000020A 9D                      popf
+   240 0000020B 415F                    pop r15
+   241 0000020D 415E                    pop r14
+   242 0000020F 415D                    pop r13
+   243 00000211 415C                    pop r12
+   244 00000213 415B                    pop r11
+   245 00000215 415A                    pop r10
+   246 00000217 4159                    pop r9
+   247 00000219 4158                    pop r8
+   248 0000021B 5E                      pop rsi
+   249 0000021C 5F                      pop rdi
+   250 0000021D 5A                      pop rdx
+   251 0000021E 59                      pop rcx
+   252 0000021F 5B                      pop rbx
+   253 00000220 5D                      pop rbp
+   254                                  
+   255                                  ;return username and usertitle to main.cpp
+   256 00000221 48B8-                   mov     rax, username
+   256 00000223 [4003000000000000] 
+   257                                  
+   258 0000022B C3                      ret

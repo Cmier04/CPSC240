@@ -1,0 +1,236 @@
+     1                                  ;****************************************************************************************************************************
+     2                                  ;Program name: "Assignment3, The Arrays Program". This program demonstrates the use of user input into an array and         *
+     3                                  ;getting the sum of an array as well as sorting it using Assembly, C, and C++.                                              *
+     4                                  ;Copyright (C) 2024  Christine Mier                                                                                         *
+     5                                  ;This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License  *
+     6                                  ;version 3 as published by the Free Software Foundation.                                                                    *
+     7                                  ;This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied         *
+     8                                  ;warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.     *
+     9                                  ;A copy of the GNU General Public License v3 is available here:  <https://www.gnu.org/licenses/>.                           *
+    10                                  ;****************************************************************************************************************************
+    11                                  
+    12                                  
+    13                                  
+    14                                  
+    15                                  ;========1=========2=========3=========4=========5=========6=========7=========8=========9=========0=========1=========2=========3=========4=========5=========6=========7**
+    16                                  ;Author information
+    17                                  ;  Author name: Christine Mier
+    18                                  ;  Author email: cmier@csu.fullerton.edu
+    19                                  ;
+    20                                  ;Program information
+    21                                  ; Program name: Assignment 3, The Array Program
+    22                                  ;  Programming languages X86 with one module in C++ and one module in C
+    23                                  ;  Date development of version 1 began 2024-Oct-04
+    24                                  ;  Date development of version 1 completed 2024-Oct-13
+    25                                  ;
+    26                                  ;Purpose
+    27                                  ;  This program is a 'Array' program which demonstrates the use of user input into an array and getting the sum of an array as well as sorting it using Assembly, C, and C++.
+    28                                  ;
+    29                                  ;Project information
+    30                                  ;  Files: main.c, manager.asm, input_array.asm, isinteger.asm, output_array.asm, sum.asm, sort.cpp, run.sh
+    31                                  ;  Status: The program has been tested extensively with no detectable errors. However, it does not print output of array correctly and does not call for sum of array correctly
+    32                                  ;
+    33                                  ;Translator information
+    34                                  ;  Linux: nasm -f elf64 -l manager.lis -o manager.o manager.asm
+    35                                  
+    36                                  ;References and credits
+    37                                  ; Khoa, "Input_Arry, manager.asm"
+    38                                  
+    39                                  ;Format information
+    40                                  ;  Page width: 172 columns
+    41                                  ;  Begin comments: 61
+    42                                  ;  Optimal print specification: Landscape, 7 points, monospace, 8Â½x11 paper
+    43                                  ;
+    44                                  ;===== Begin code area ====================================================================================================================================================
+    45                                  
+    46                                  ;This would be input array in C: long unsigned input_array(long myarr[], long_size)
+    47                                  ;unsure manager
+    48                                  extern printf
+    49                                  extern stdin
+    50                                  extern fgets
+    51                                  extern strlen
+    52                                  extern input_array
+    53                                  extern output_array
+    54                                  extern sum
+    55                                  extern sort
+    56                                  global manager
+    57                                  array_size equ 100
+    58                                  
+    59                                  segment .data
+    60 00000000 506C6561736520656E-         name db "Please enter your name: ", 0
+    60 00000009 74657220796F757220-
+    60 00000012 6E616D653A2000     
+    61 00000019 546869732070726F67-         program db "This program will sum your array of integers.", 10, 0 "Enter a sequence of long integers followed by a white space. ", 10, 0 "After the last input press enter followed by Control+D: ", 10, 0
+    61 00000022 72616D2077696C6C20-
+    61 0000002B 73756D20796F757220-
+    61 00000034 6172726179206F6620-
+    61 0000003D 696E7465676572732E-
+    61 00000046 0A000A000A00       
+    62 0000004C 5468657365206E756D-         outputarr db "These numbers were recieved and placed into the array:", 10, 0
+    62 00000055 626572732077657265-
+    62 0000005E 207265636965766564-
+    62 00000067 20616E6420706C6163-
+    62 00000070 656420696E746F2074-
+    62 00000079 68652061727261793A-
+    62 00000082 0A00               
+    63 00000084 5468652073756D206F-         sumarray db "The sum of the %ld integer array is %ld.", 10, 0
+    63 0000008D 662074686520256C64-
+    63 00000096 20696E746567657220-
+    63 0000009F 617272617920697320-
+    63 000000A8 256C642E0A00       
+    64 000000AE 546869732069732074-         sorted db "This is the array sorted.", 10, 0
+    64 000000B7 686520617272617920-
+    64 000000C0 736F727465642E0A00 
+    65 000000C9 205468652070726F67-         return db " The program will return execution to the main function.", 10, 0
+    65 000000D2 72616D2077696C6C20-
+    65 000000DB 72657475726E206578-
+    65 000000E4 65637574696F6E2074-
+    65 000000ED 6F20746865206D6169-
+    65 000000F6 6E2066756E6374696F-
+    65 000000FF 6E2E0A00           
+    66                                  
+    67 00000103 257300                      stringformat db "%s", 0
+    68 00000106 256C6400                    intformat db "%ld", 0
+    69                                  
+    70                                  segment .bss
+    71 00000000 <res 320h>                  myarray resq array_size
+    72 00000320 <res 28h>                   username resb 40
+    73                                  
+    74                                  segment .text
+    75                                  manager:
+    76 00000000 55                      push rbp
+    77 00000001 4889E5                  mov rbp, rsp
+    78 00000004 53                      push rbx
+    79 00000005 51                      push rcx
+    80 00000006 52                      push rdx
+    81 00000007 57                      push rdi
+    82 00000008 56                      push rsi
+    83 00000009 4150                    push r8
+    84 0000000B 4151                    push r9
+    85 0000000D 4152                    push r10
+    86 0000000F 4153                    push r11
+    87 00000011 4154                    push r12
+    88 00000013 4155                    push r13
+    89 00000015 4156                    push r14
+    90 00000017 4157                    push r15
+    91 00000019 9C                      pushf
+    92                                  
+    93                                  ;print username
+    94 0000001A B800000000              mov     rax, 0
+    95 0000001F 48BF-                   mov     rdi, stringformat
+    95 00000021 [0301000000000000] 
+    96 00000029 48BE-                   mov     rsi, name
+    96 0000002B [0000000000000000] 
+    97 00000033 E8(00000000)            call    printf
+    98                                  
+    99                                  ;input username
+   100 00000038 B800000000              mov     rax, 0
+   101 0000003D 48BF-                   mov     rdi, username
+   101 0000003F [2003000000000000] 
+   102 00000047 BE28000000              mov     rsi, 40
+   103 0000004C 488B1425[00000000]      mov     rdx, [stdin]
+   104 00000054 E8(00000000)            call    fgets
+   105                                  
+   106 00000059 B800000000              mov     rax, 0
+   107 0000005E 48BF-                   mov     rdi, username
+   107 00000060 [2003000000000000] 
+   108 00000068 E8(00000000)            call    strlen      ;get length of string to delete newline
+   109 0000006D C680[1F030000]00        mov [username+rax-1], byte 0
+   110                                  
+   111                                  ;output program
+   112 00000074 B800000000              mov     rax, 0
+   113 00000079 48BF-                   mov     rdi, stringformat
+   113 0000007B [0301000000000000] 
+   114 00000083 48BE-                   mov     rsi, program
+   114 00000085 [1900000000000000] 
+   115 0000008D E8(00000000)            call    printf
+   116                                  
+   117                                  ;get values from user by calling input_array
+   118                                  ;mov     rax, 0
+   119 00000092 48BF-                   mov     rdi, myarray
+   119 00000094 [0000000000000000] 
+   120 0000009C BE64000000              mov     rsi, array_size
+   121 000000A1 E8(00000000)            call    input_array
+   122 000000A6 4989C7                  mov     r15, rax
+   123                                  
+   124                                  ;output array, confirm
+   125 000000A9 B800000000              mov     rax, 0
+   126 000000AE 48BF-                   mov     rdi, stringformat
+   126 000000B0 [0301000000000000] 
+   127 000000B8 48BE-                   mov     rsi, outputarr
+   127 000000BA [4C00000000000000] 
+   128 000000C2 E8(00000000)            call    printf
+   129                                  
+   130                                  ;call output array
+   131 000000C7 B800000000              mov     rax, 0
+   132 000000CC 48BF-                   mov     rdi, myarray
+   132 000000CE [0000000000000000] 
+   133 000000D6 4C89FE                  mov     rsi, r15
+   134 000000D9 E8(00000000)            call    output_array
+   135                                  
+   136                                  ;call sum
+   137 000000DE B800000000              mov     rax, 0
+   138 000000E3 48BF-                   mov     rdi, myarray
+   138 000000E5 [0000000000000000] 
+   139 000000ED 4C89FE                  mov     rsi, r15
+   140 000000F0 E8(00000000)            call    sum
+   141                                  
+   142                                  ;output sum
+   143 000000F5 B800000000              mov     rax, 0
+   144 000000FA 48BF-                   mov     rdi, stringformat
+   144 000000FC [0301000000000000] 
+   145 00000104 48BE-                   mov     rsi, sumarray
+   145 00000106 [8400000000000000] 
+   146 0000010E E8(00000000)            call    printf
+   147                                  
+   148                                  ;output sorted array
+   149 00000113 B800000000              mov     rax, 0
+   150 00000118 48BF-                   mov     rdi, stringformat
+   150 0000011A [0301000000000000] 
+   151 00000122 48BE-                   mov     rsi, sorted
+   151 00000124 [AE00000000000000] 
+   152 0000012C E8(00000000)            call    printf
+   153                                  
+   154                                  ;call sorted
+   155 00000131 B800000000              mov     rax, 0
+   156 00000136 48BF-                   mov     rdi, myarray
+   156 00000138 [0000000000000000] 
+   157 00000140 4C89FE                  mov     rsi, r15
+   158 00000143 E8(00000000)            call    sort
+   159                                  
+   160                                  ;print sorted array
+   161 00000148 B800000000              mov     rax, 0
+   162 0000014D 48BF-                   mov     rdi, intformat
+   162 0000014F [0601000000000000] 
+   163 00000157 48BE-                   mov     rsi, myarray
+   163 00000159 [0000000000000000] 
+   164 00000161 E8(00000000)            call    printf
+   165                                  
+   166                                  ;output return
+   167 00000166 B800000000              mov     rax, 0
+   168 0000016B 48BF-                   mov     rdi, stringformat
+   168 0000016D [0301000000000000] 
+   169 00000175 48BE-                   mov     rsi, return
+   169 00000177 [C900000000000000] 
+   170 0000017F E8(00000000)            call    printf
+   171                                  
+   172                                  ;16 pops
+   173 00000184 9D                      popf
+   174 00000185 415F                    pop r15
+   175 00000187 415E                    pop r14
+   176 00000189 415D                    pop r13
+   177 0000018B 415C                    pop r12
+   178 0000018D 415B                    pop r11
+   179 0000018F 415A                    pop r10
+   180 00000191 4159                    pop r9
+   181 00000193 4158                    pop r8
+   182 00000195 5E                      pop rsi
+   183 00000196 5F                      pop rdi
+   184 00000197 5A                      pop rdx
+   185 00000198 59                      pop rcx
+   186 00000199 5B                      pop rbx
+   187 0000019A 5D                      pop rbp
+   188                                  
+   189 0000019B 48B8-                   mov     rax, username
+   189 0000019D [2003000000000000] 
+   190 000001A5 C3                      ret

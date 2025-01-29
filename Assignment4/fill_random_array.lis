@@ -1,0 +1,137 @@
+     1                                  ;****************************************************************************************************************************
+     2                                  ;Program name: "Assignment 4, Non-Deterministic Random Numbers". This program generates random IEEE754 numbers and          *
+     3                                  ;displays their scientific decimal form, as well as sorts and displays the array of random numbers.                         *
+     4                                  ;Copyright (C) 2024  Christine Mier                                                                                         *
+     5                                  ;This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License  *
+     6                                  ;version 3 as published by the Free Software Foundation.                                                                    *
+     7                                  ;This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied         *
+     8                                  ;warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.     *
+     9                                  ;A copy of the GNU General Public License v3 is available here:  <https://www.gnu.org/licenses/>.                           *
+    10                                  ;****************************************************************************************************************************
+    11                                  
+    12                                  
+    13                                  
+    14                                  ;========1=========2=========3=========4=========5=========6=========7=========8=========9=========0=========1=========2=========3=========4=========5=========6=========7**
+    15                                  ;Author information
+    16                                  ;  Author name: Christine Mier
+    17                                  ;  Author email: cmier@csu.fullerton.edu
+    18                                  ;
+    19                                  ;Program information
+    20                                  ; Program name: Assignment 4, Non-Deterministic Random Numbers
+    21                                  ;  Programming languages X86 with two modules in C++
+    22                                  ;  Date development of version 1 began 2024-Oct-22
+    23                                  ;  Date development of version 1 completed 2024-Nov-03
+    24                                  ;
+    25                                  ;Purpose
+    26                                  ;  This program generates random IEEE754 numbers and displays their scientific decimal form as well as sorts and displays the array of random numbers.
+    27                                  ;
+    28                                  ;Project information
+    29                                  ;  Files: main.cpp, executive.asm, fill_random_array.asm, show_array.asm, normalize_array.asm, isnan.asm, sort.cpp, run.sh
+    30                                  ;  Status: The program has been tested extensively with no detectable errors. However, it does not normalize the array and sorts/prints the normalized array as
+    31                                  ;          this function call has been removed due to an infinite loop issue.
+    32                                  ;
+    33                                  ;Translator information
+    34                                  ;  Linux: nasm -f elf64 -l fill_random_array.lis -o fill_random_array.o fill_random_array.asm
+    35                                  
+    36                                  ;References and credits
+    37                                  
+    38                                  ;Format information
+    39                                  ;  Page width: 172 columns
+    40                                  ;  Begin comments: 61
+    41                                  ;  Optimal print specification: Landscape, 7 points, monospace, 8Â½x11 paper
+    42                                  ;
+    43                                  ;===== Begin code area ====================================================================================================================================================
+    44                                  
+    45                                  extern printf
+    46                                  extern isnan
+    47                                  
+    48                                  global fill_random_array
+    49                                  
+    50                                  segment .data
+    51                                  
+    52                                  segment .bss
+    53                                  ;possible no declarations
+    54                                  
+    55                                  segment .text
+    56                                  fill_random_array:
+    57                                  
+    58                                  ;backup GPRs
+    59 00000000 55                      push rbp
+    60 00000001 4889E5                  mov rbp, rsp
+    61 00000004 53                      push rbx
+    62 00000005 51                      push rcx
+    63 00000006 52                      push rdx
+    64 00000007 57                      push rdi
+    65 00000008 56                      push rsi
+    66 00000009 4150                    push r8
+    67 0000000B 4151                    push r9
+    68 0000000D 4152                    push r10
+    69 0000000F 4153                    push r11
+    70 00000011 4154                    push r12
+    71 00000013 4155                    push r13
+    72 00000015 4156                    push r14
+    73 00000017 4157                    push r15
+    74 00000019 9C                      pushf
+    75                                  
+    76                                  ;get array address/size and store
+    77 0000001A 4989FF                  mov     r15, rdi        ;my_array is stored here
+    78 0000001D 4989F6                  mov     r14, rsi
+    79                                  
+    80                                  ;set array counter to 0
+    81 00000020 41BD00000000            mov     r13, 0
+    82                                  
+    83                                  ;check if array size limit reached
+    84                                  array_capacity:
+    85 00000026 4D39F5                  cmp     r13, r14
+    86 00000029 7C02                    jl      is_less
+    87                                  
+    88                                  ;if array is full
+    89 0000002B EB35                    jmp     exit
+    90                                  
+    91                                  ;is_less function if array capacity is not reached
+    92                                  is_less:
+    93                                  ;generate random number and input it into array
+    94                                  fill_array:
+    95 0000002D B800000000              mov     rax, 0
+    96 00000032 490FC7F4                rdrand  r12                 ;from class notes
+    97 00000036 4C89E7                  mov     rdi, r12
+    98 00000039 4154                    push    r12
+    99 0000003B 4154                    push    r12
+   100 0000003D F2440F103C24            movsd   xmm15, [rsp]
+   101 00000043 415C                    pop     r12
+   102 00000045 415C                    pop     r12
+   103                                  
+   104                                  ;check if random number is nan by calling isnan function and loop through loop again if nan
+   105 00000047 F2410F10C7              movsd   xmm0, xmm15
+   106 0000004C E8(00000000)            call    isnan
+   107 00000051 4883F800                cmp     rax, 0
+   108 00000055 74D6                    je      fill_array
+   109                                  
+   110                                  ;if number is not nan, store in array
+   111 00000057 F2470F113CEF            movsd   [r15 + r13 * 8], xmm15
+   112                                  
+   113                                  ;increment counter so you're able to tell if/when array is full
+   114 0000005D 49FFC5                  inc     r13
+   115 00000060 EBC4                    jmp     array_capacity
+   116                                  
+   117                                  ;exit function when array capacity is full
+   118                                  exit:
+   119                                  
+   120                                  ;restore GPRs
+   121 00000062 9D                      popf
+   122 00000063 415F                    pop r15
+   123 00000065 415E                    pop r14
+   124 00000067 415D                    pop r13
+   125 00000069 415C                    pop r12
+   126 0000006B 415B                    pop r11
+   127 0000006D 415A                    pop r10
+   128 0000006F 4159                    pop r9
+   129 00000071 4158                    pop r8
+   130 00000073 5E                      pop rsi
+   131 00000074 5F                      pop rdi
+   132 00000075 5A                      pop rdx
+   133 00000076 59                      pop rcx
+   134 00000077 5B                      pop rbx
+   135 00000078 5D                      pop rbp
+   136                                  
+   137 00000079 C3                      ret

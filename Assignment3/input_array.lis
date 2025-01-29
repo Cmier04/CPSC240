@@ -1,0 +1,168 @@
+     1                                  ;****************************************************************************************************************************
+     2                                  ;Program name: "Assignment3, The Arrays Program". This program demonstrates the use of user input into an array and         *
+     3                                  ;getting the sum of an array as well as sorting it using Assembly, C, and C++.                                              *
+     4                                  ;Copyright (C) 2024  Christine Mier                                                                                         *
+     5                                  ;This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License  *
+     6                                  ;version 3 as published by the Free Software Foundation.                                                                    *
+     7                                  ;This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied         *
+     8                                  ;warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.     *
+     9                                  ;A copy of the GNU General Public License v3 is available here:  <https://www.gnu.org/licenses/>.                           *
+    10                                  ;****************************************************************************************************************************
+    11                                  
+    12                                  
+    13                                  
+    14                                  ;========1=========2=========3=========4=========5=========6=========7=========8=========9=========0=========1=========2=========3=========4=========5=========6=========7**
+    15                                  ;Author information
+    16                                  ;  Author name: Christine Mier
+    17                                  ;  Author email: cmier@csu.fullerton.edu
+    18                                  ;
+    19                                  ;Program information
+    20                                  ; Program name: Assignment 3, The Array Program
+    21                                  ;  Programming languages X86 with one module in C++ and one module in C
+    22                                  ;  Date development of version 1 began 2024-Oct-04
+    23                                  ;  Date development of version 1 completed 2024-Oct-13
+    24                                  ;
+    25                                  ;Purpose
+    26                                  ;  This program is a 'Array' program which demonstrates the use of user input into an array and getting the sum of an array as well as sorting it using Assembly, C, and C++.
+    27                                  ;
+    28                                  ;Project information
+    29                                  ;  Files: main.c, manager.asm, input_array.asm, isinteger.asm, output_array.asm, sum.asm, sort.cpp, run.sh
+    30                                  ;  Status: The program has been tested extensively with no detectable errors. However, it does not print output of array correctly and does not call for sum of array correctly
+    31                                  ;
+    32                                  ;Translator information
+    33                                  ;  Linux: nasm -f elf64 -l input_array.lis -o input_array.o input_array.asm
+    34                                  
+    35                                  ;References and credits
+    36                                  ; Holliday
+    37                                  
+    38                                  ;Format information
+    39                                  ;  Page width: 172 columns
+    40                                  ;  Begin comments: 61
+    41                                  ;  Optimal print specification: Landscape, 7 points, monospace, 8Â½x11 paper
+    42                                  ;
+    43                                  ;===== Begin code area ====================================================================================================================================================
+    44                                  
+    45                                  extern printf
+    46                                  extern fgets
+    47                                  extern scanf
+    48                                  extern stdin
+    49                                  extern atol
+    50                                  extern manager
+    51                                  extern isinteger
+    52                                  global input_array
+    53                                  
+    54                                  ;isdigit only tests one character and isint tests the whole inputted value
+    55                                  segment .data
+    56 00000000 257300                      stringformat db "%s", 0
+    57 00000003 256C6400                    intformat db "%ld", 0
+    58 00000007 496E70757420697320-         invalid db "Input is not an integer, try again.", 10, 0
+    58 00000010 6E6F7420616E20696E-
+    58 00000019 74656765722C207472-
+    58 00000022 7920616761696E2E0A-
+    58 0000002B 00                 
+    59                                  segment .bss
+    60                                      ;remains empty
+    61                                  segment .text
+    62                                  input_array:
+    63                                  ;16 pushes
+    64 00000000 55                          push rbp
+    65 00000001 4889E5                      mov rbp, rsp
+    66 00000004 53                          push rbx
+    67 00000005 51                          push rcx
+    68 00000006 52                          push rdx
+    69 00000007 57                          push rdi
+    70 00000008 56                          push rsi
+    71 00000009 4150                        push r8
+    72 0000000B 4151                        push r9
+    73 0000000D 4152                        push r10
+    74 0000000F 4153                        push r11
+    75 00000011 4154                        push r12
+    76 00000013 4155                        push r13
+    77 00000015 4156                        push r14
+    78 00000017 4157                        push r15
+    79 00000019 9C                          pushf
+    80                                  
+    81                                  ;backup incoming parameters:
+    82 0000001A 4989FE                      mov     r14, rdi        ;r14 is the array that was declared in caller function
+    83 0000001D 4989F7                      mov     r15, rsi        ;r15 is max number of elements that can be stored in array
+    84                                      ;rdi and rsi are free to use but r14 and r15 are fixed
+    85                                  
+    86 00000020 4D31ED                      xor     r13, r13        ;faster execution than mov r13,0;; x13 counts numbers inserted into the array
+    87 00000023 4881EC20030000              sub     rsp, 800        ;800 bytes = 100 qwords, eq of pushing rax 300 times
+    88                                  
+    89                                  beginloop:
+    90                                      ;prompt for input
+    91                                      ;input a number
+    92 0000002A B800000000                  mov     rax, 0
+    93 0000002F 4889E7                      mov     rdi, rsp        ;first parameter for fgets and second is for storage
+    94 00000032 BE1F030000                  mov     rsi, 799        ;leave 1 byte for null character
+    95 00000037 488B1425[00000000]          mov     rdx, [stdin]
+    96 0000003F E8(00000000)                call    fgets
+    97                                      ;if ctrl+D is detected, end function
+    98 00000044 4883F800                    cmp     rax, 0         ;try cmp rax, 0
+    99 00000048 7443                        je      loopdone        ;if it doesn't work, try changing to beginloop
+   100                                  
+   101                                      ;Test for integer input
+   102 0000004A 4883F000                    xor     rax, 0          ;try mov instead of xor
+   103 0000004E 4889E7                      mov     rdi, rsp
+   104 00000051 E8(00000000)                call    isinteger       ;returns 0 if false and returns other if integer, find and use
+   105 00000056 4883F8FF                    cmp     rax, -1
+   106 0000005A 741B                        je      tryagain       ;prompt tryagain instead******
+   107                                  
+   108                                      ;convert string on top of stack to int
+   109 0000005C B800000000                  mov     rax, 0
+   110 00000061 4889E7                      mov     rdi, rsp
+   111 00000064 E8(00000000)                call    atol            ;in C++ library and places answer in rax
+   112 00000069 4B8904EE                    mov     [r14 + 8 * r13], rax
+   113                                  
+   114 0000006D 49FFC5                      inc     r13             ;inc is like r13++ so it is counted, incremented
+   115 00000070 4D39FD                      cmp     r13, r15        ;checks if count has reached limit (max size of the array), if r13 = r15
+   116 00000073 7D18                        jge     loopdone
+   117 00000075 EBB3                        jmp     beginloop
+   118                                  
+   119                                      tryagain:
+   120 00000077 B800000000                  mov     rax, 0
+   121 0000007C 48BF-                       mov     rdi, invalid
+   121 0000007E [0700000000000000] 
+   122 00000086 E8(00000000)                call    printf
+   123 0000008B EB9D                        jmp     beginloop
+   124                                  
+   125                                  
+   126                                  loopdone:               ;ctrl d sends here and if it's done aswell
+   127                                  
+   128 0000008D 4C89E8                      mov     rax, r13
+   129 00000090 4881C420030000              add     rsp, 800
+   130                                  
+   131 00000097 4C89E8                      mov     rax, r13
+   132                                  
+   133                                  ;16 pops     no rax here
+   134 0000009A 9D                          popf
+   135 0000009B 415F                        pop r15
+   136 0000009D 415E                        pop r14
+   137 0000009F 415D                        pop r13
+   138 000000A1 415C                        pop r12
+   139 000000A3 415B                        pop r11
+   140 000000A5 415A                        pop r10
+   141 000000A7 4159                        pop r9
+   142 000000A9 4158                        pop r8
+   143 000000AB 5E                          pop rsi
+   144 000000AC 5F                          pop rdi
+   145 000000AD 5A                          pop rdx
+   146 000000AE 59                          pop rcx
+   147 000000AF 5B                          pop rbx
+   148 000000B0 5D                          pop rbp
+   149                                  
+   150                                  ;DO NOT PLACE mov rax, r13 her because it will change
+   151 000000B1 C3                          ret
+   152                                  
+   153                                  
+   154                                  ;--------------------------Class Notes---------------------------
+   155                                  ;unicode: code number to every known character on earth
+   156                                  ;wsl/linux
+   157                                  ;control + shift + U
+   158                                  ;release
+   159                                  ;0x00AZ 0x21AF
+   160                                  ;ONLY ONE INTEGER INPUT PER LINE
+   161                                  ;returns how many numbers in array to manager.asm
+   162                                  
+   163                                  

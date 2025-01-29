@@ -1,0 +1,138 @@
+     1                                  ;****************************************************************************************************************************
+     2                                  ;Program name: "Assignment 4, Non-Deterministic Random Numbers". This program generates random IEEE754 numbers and          *
+     3                                  ;displays their scientific decimal form, as well as sorts and displays the array of random numbers.                         *
+     4                                  ;Copyright (C) 2024  Christine Mier                                                                                         *
+     5                                  ;This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License  *
+     6                                  ;version 3 as published by the Free Software Foundation.                                                                    *
+     7                                  ;This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied         *
+     8                                  ;warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.     *
+     9                                  ;A copy of the GNU General Public License v3 is available here:  <https://www.gnu.org/licenses/>.                           *
+    10                                  ;****************************************************************************************************************************
+    11                                  
+    12                                  
+    13                                  
+    14                                  ;========1=========2=========3=========4=========5=========6=========7=========8=========9=========0=========1=========2=========3=========4=========5=========6=========7**
+    15                                  ;Author information
+    16                                  ;  Author name: Christine Mier
+    17                                  ;  Author email: cmier@csu.fullerton.edu
+    18                                  ;
+    19                                  ;Program information
+    20                                  ; Program name: Assignment 4, Non-Deterministic Random Numbers
+    21                                  ;  Programming languages X86 with two modules in C++
+    22                                  ;  Date development of version 1 began 2024-Oct-22
+    23                                  ;  Date development of version 1 completed 2024-Nov-03
+    24                                  ;
+    25                                  ;Purpose
+    26                                  ;  This program generates random IEEE754 numbers and displays their scientific decimal form as well as sorts and displays the array of random numbers.
+    27                                  ;
+    28                                  ;Project information
+    29                                  ;  Files: main.cpp, executive.asm, fill_random_array.asm, show_array.asm, normalize_array.asm, isnan.asm, sort.cpp, run.sh
+    30                                  ;  Status: The program has been tested extensively with no detectable errors. However, it does not normalize the array and sorts/prints the normalized array as
+    31                                  ;          this function call has been removed due to an infinite loop issue.
+    32                                  ;
+    33                                  ;Translator information
+    34                                  ;  Linux: nasm -f elf64 -l show_array.lis -o show_array.o show_array.asm
+    35                                  
+    36                                  ;References and credits
+    37                                  
+    38                                  ;Format information
+    39                                  ;  Page width: 172 columns
+    40                                  ;  Begin comments: 61
+    41                                  ;  Optimal print specification: Landscape, 7 points, monospace, 8Â½x11 paper
+    42                                  ;
+    43                                  ;===== Begin code area ====================================================================================================================================================
+    44                                  
+    45                                  extern printf
+    46                                  
+    47                                  global show_array
+    48                                  
+    49                                  segment .data
+    50 00000000 494545453735342020-         header db "IEEE754                     Scientific Decimal",10, 0
+    50 00000009 202020202020202020-
+    50 00000012 202020202020202020-
+    50 0000001B 20536369656E746966-
+    50 00000024 696320446563696D61-
+    50 0000002D 6C0A00             
+    51 00000030 3078253031366C7820-         output_format db "0x%016lx          %-18.13g", 10, 0
+    51 00000039 202020202020202020-
+    51 00000042 252D31382E3133670A-
+    51 0000004B 00                 
+    52                                  
+    53                                  segment .bss
+    54                                  
+    55                                  segment .text
+    56                                  show_array:
+    57                                  ;backup GPRs
+    58 00000000 55                      push rbp
+    59 00000001 4889E5                  mov rbp, rsp
+    60 00000004 53                      push rbx
+    61 00000005 51                      push rcx
+    62 00000006 52                      push rdx
+    63 00000007 57                      push rdi
+    64 00000008 56                      push rsi
+    65 00000009 4150                    push r8
+    66 0000000B 4151                    push r9
+    67 0000000D 4152                    push r10
+    68 0000000F 4153                    push r11
+    69 00000011 4154                    push r12
+    70 00000013 4155                    push r13
+    71 00000015 4156                    push r14
+    72 00000017 4157                    push r15
+    73 00000019 9C                      pushf
+    74                                  
+    75                                  ;get array size and store
+    76 0000001A 4989FF                  mov     r15, rdi
+    77 0000001D 4989F6                  mov     r14, rsi
+    78                                  
+    79                                  ;use counter to ensure size limit is not exceeded
+    80 00000020 41BD00000000            mov     r13, 0
+    81                                  
+    82                                  ;output header
+    83 00000026 B800000000              mov     rax, 0
+    84 0000002B 48BF-                   mov     rdi, header
+    84 0000002D [0000000000000000] 
+    85 00000035 E8(00000000)            call    printf
+    86                                  
+    87                                  ;check array capacity
+    88                                  array_capacity:
+    89 0000003A 4D39F5                  cmp     r13, r14
+    90 0000003D 7C02                    jl      notdone
+    91                                  
+    92                                  ;if array is done printing
+    93 0000003F EB23                    jmp endloop
+    94                                  
+    95                                  notdone:
+    96                                  ;output value with IEEE form and decimal form
+    97 00000041 B802000000              mov     rax, 2
+    98 00000046 48BF-                   mov     rdi, output_format
+    98 00000048 [3000000000000000] 
+    99 00000050 4B8B34EF                mov     rsi, [r15 + r13 * 8]
+   100 00000054 F2430F1004EF            movsd   xmm0, [r15 + r13 *8]
+   101 0000005A E8(00000000)            call    printf
+   102                                  
+   103                                  ;add to counter and jump back to check array capacity
+   104 0000005F 49FFC5                  inc     r13
+   105 00000062 EBD6                    jmp     array_capacity
+   106                                  
+   107                                  ;exit the loop
+   108                                  endloop:
+   109                                  
+   110                                  ;restore GPRs
+   111 00000064 9D                      popf
+   112 00000065 415F                    pop r15
+   113 00000067 415E                    pop r14
+   114 00000069 415D                    pop r13
+   115 0000006B 415C                    pop r12
+   116 0000006D 415B                    pop r11
+   117 0000006F 415A                    pop r10
+   118 00000071 4159                    pop r9
+   119 00000073 4158                    pop r8
+   120 00000075 5E                      pop rsi
+   121 00000076 5F                      pop rdi
+   122 00000077 5A                      pop rdx
+   123 00000078 59                      pop rcx
+   124 00000079 5B                      pop rbx
+   125 0000007A 5D                      pop rbp
+   126                                  
+   127                                  ;return
+   128 0000007B C3                      ret

@@ -1,0 +1,294 @@
+     1                                  ;****************************************************************************************************************************
+     2                                  ;Program name: "Assignment, The Hello World Program". This program demonstrates user input and output                       *
+     3                                  ;Copyright (C) 2024  Christine Mier                                                                                         *
+     4                                  ;This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License  *
+     5                                  ;version 3 as published by the Free Software Foundation.                                                                    *
+     6                                  ;This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied         *
+     7                                  ;warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.     *
+     8                                  ;A copy of the GNU General Public License v3 is available here:  <https://www.gnu.org/licenses/>.                           *
+     9                                  ;****************************************************************************************************************************
+    10                                  
+    11                                  
+    12                                  
+    13                                  
+    14                                  ;========1=========2=========3=========4=========5=========6=========7=========8=========9=========0=========1=========2=========3=========4=========5=========6=========7**
+    15                                  ;Author information
+    16                                  ;  Author name: Christine Mier
+    17                                  ;  Author email: cmier@csu.fullerton.edu
+    18                                  ;
+    19                                  ;Program information
+    20                                  ; Program name: Assignment 1, The Hello World Program
+    21                                  ;  Programming languages X86 with one module in C++
+    22                                  ;  Date development of version 1 began 2024-Aug-28
+    23                                  ;  Date development of version 1 completed 2024-Sept-9
+    24                                  ;
+    25                                  ;Purpose
+    26                                  ;  This program is a 'Hello World' program which demonstrates user input and output in Assembly and C++.
+    27                                  ;
+    28                                  ;Project information
+    29                                  ;  Files: main.cpp, hello.asm, run.sh
+    30                                  ;  Status: The program has been tested extensively with no detectable errors.
+    31                                  ;
+    32                                  ;Translator information
+    33                                  ;  Linux: nasm -f elf64 -l hello.lis -o hello.o hello.asm
+    34                                  ;References and credits
+    35                                  ;   Holliday, 'String I/O 1.5'
+    36                                  
+    37                                  ;Format information
+    38                                  ;  Page width: 172 columns
+    39                                  ;  Begin comments: 61
+    40                                  ;  Optimal print specification: Landscape, 7 points, monospace, 8Â½x11 paper
+    41                                  ;
+    42                                  ;===== Begin code area ====================================================================================================================================================
+    43                                  
+    44                                  extern fgets    ;get input
+    45                                  extern printf   ;output strings
+    46                                  extern scanf    ;input numbers
+    47                                  extern stdin    ;keyboard input
+    48                                  extern strlen   ;string length
+    49                                  global hello    ;makes function callable
+    50                                  
+    51                                  ;Message Declarations
+    52                                  segment .data
+    53 00000000 506C6561736520656E-         firstlast db "Please enter first and last names: ", 0
+    53 00000009 746572206669727374-
+    53 00000012 20616E64206C617374-
+    53 0000001B 206E616D65733A2000 
+    54 00000024 506C6561736520656E-         title db "Please enter your title (Ms, Mr, Engineer, Programmer, Mathematician, Genius, etc): ", 0
+    54 0000002D 74657220796F757220-
+    54 00000036 7469746C6520284D73-
+    54 0000003F 2C204D722C20456E67-
+    54 00000048 696E6565722C205072-
+    54 00000051 6F6772616D6D65722C-
+    54 0000005A 204D617468656D6174-
+    54 00000063 696369616E2C204765-
+    54 0000006C 6E6975732C20657463-
+    54 00000075 293A2000           
+    55 00000079 48656C6C6F2000              helloname db "Hello ", 0
+    56 00000080 2E20486F7720686173-         day db ". How has your day been so far? ", 0
+    56 00000089 20796F757220646179-
+    56 00000092 206265656E20736F20-
+    56 0000009B 6661723F2000       
+    57 000000A1 206973207265616C6C-         response db " is really nice.", 10, 0
+    57 000000AA 79206E6963652E0A00 
+    58 000000B3 576861742069732079-         salary db "What is your salary in dollars? ", 0
+    58 000000BC 6F75722073616C6172-
+    58 000000C5 7920696E20646F6C6C-
+    58 000000CE 6172733F2000       
+    59 000000D4 4F682C202400                oh db "Oh, $", 0
+    60 000000DA 206973207665727920-         nice db " is very nice for a ", 0
+    60 000000E3 6E69636520666F7220-
+    60 000000EC 612000             
+    61 000000EF 5468697320636F6E63-         finalMsg db "This concludes the demonstration of the Hello program written in x86 assembly. ", 0
+    61 000000F8 6C7564657320746865-
+    61 00000101 2064656D6F6E737472-
+    61 0000010A 6174696F6E206F6620-
+    61 00000113 7468652048656C6C6F-
+    61 0000011C 2070726F6772616D20-
+    61 00000125 7772697474656E2069-
+    61 0000012E 6E2078383620617373-
+    61 00000137 656D626C792E2000   
+    62 0000013F 257300                      stringformat db "%s", 0
+    63                                  
+    64                                  segment .bss
+    65 00000000 <res 28h>                   username resb 40
+    66                                  
+    67                                  ;Input and Output Strings
+    68                                  segment .text
+    69                                  hello:
+    70                                  
+    71                                  ;backup GPRs
+    72 00000000 55                      push rbp
+    73 00000001 4889E5                  mov rbp, rsp
+    74 00000004 53                      push rbx
+    75 00000005 51                      push rcx
+    76 00000006 52                      push rdx
+    77 00000007 57                      push rdi
+    78 00000008 56                      push rsi
+    79 00000009 4150                    push r8
+    80 0000000B 4151                    push r9
+    81 0000000D 4152                    push r10
+    82 0000000F 4153                    push r11
+    83 00000011 4154                    push r12
+    84 00000013 4155                    push r13
+    85 00000015 4156                    push r14
+    86 00000017 4157                    push r15
+    87 00000019 9C                      pushf
+    88                                  
+    89                                  ;output request for first and last names
+    90 0000001A B800000000              mov     rax, 0
+    91 0000001F 48BF-                   mov     rdi, stringformat
+    91 00000021 [3F01000000000000] 
+    92 00000029 48BE-                   mov     rsi, firstlast
+    92 0000002B [0000000000000000] 
+    93 00000033 E8(00000000)            call    printf
+    94                                  
+    95                                  ;input users names/delete newline created by fgets
+    96 00000038 B800000000              mov     rax, 0
+    97 0000003D 48BF-                   mov     rdi, username
+    97 0000003F [0000000000000000] 
+    98 00000047 BE28000000              mov     rsi, 40
+    99 0000004C 488B1425[00000000]      mov     rdx, [stdin]
+   100 00000054 E8(00000000)            call    fgets
+   101                                  
+   102 00000059 B800000000              mov     rax, 0
+   103 0000005E 48BF-                   mov     rdi, username
+   103 00000060 [0000000000000000] 
+   104 00000068 E8(00000000)            call    strlen      ;get length of string to delete newline
+   105 0000006D C680[FFFFFFFF]00        mov [username+rax-1], byte 0
+   106                                  
+   107                                  ;output request for title
+   108 00000074 B800000000              mov     rax, 0
+   109 00000079 48BF-                   mov     rdi, stringformat
+   109 0000007B [3F01000000000000] 
+   110 00000083 48BE-                   mov     rsi, title
+   110 00000085 [2400000000000000] 
+   111 0000008D E8(00000000)            call    printf
+   112                                  
+   113                                  ;input users title
+   114 00000092 B800000000              mov     rax, 0
+   115 00000097 48BF-                   mov     rdi, title
+   115 00000099 [2400000000000000] 
+   116 000000A1 BE28000000              mov     rsi, 40
+   117 000000A6 488B1425[00000000]      mov     rdx, [stdin]
+   118 000000AE E8(00000000)            call    fgets
+   119                                  
+   120                                  ;output greeting (user title and name)
+   121 000000B3 B800000000              mov     rax, 0
+   122 000000B8 48BF-                   mov     rdi, stringformat
+   122 000000BA [3F01000000000000] 
+   123 000000C2 48BE-                   mov     rsi, helloname
+   123 000000C4 [7900000000000000] 
+   124 000000CC E8(00000000)            call    printf
+   125                                  
+   126 000000D1 B800000000              mov     rax, 0
+   127 000000D6 48BF-                   mov     rdi, stringformat
+   127 000000D8 [3F01000000000000] 
+   128 000000E0 48BE-                   mov     rsi, title
+   128 000000E2 [2400000000000000] 
+   129 000000EA E8(00000000)            call    printf
+   130                                  
+   131 000000EF B800000000              mov     rax, 0
+   132 000000F4 48BF-                   mov     rdi, stringformat
+   132 000000F6 [3F01000000000000] 
+   133 000000FE 48BE-                   mov     rsi, username
+   133 00000100 [0000000000000000] 
+   134 00000108 E8(00000000)            call    printf
+   135                                  
+   136                                  ;output question
+   137 0000010D B800000000              mov     rax, 0
+   138 00000112 48BF-                   mov     rdi, stringformat
+   138 00000114 [3F01000000000000] 
+   139 0000011C 48BE-                   mov     rsi, day
+   139 0000011E [8000000000000000] 
+   140 00000126 E8(00000000)            call    printf
+   141                                  
+   142                                  ;input user response and delete newline created by fgets
+   143 0000012B B800000000              mov     rax, 0
+   144 00000130 48BF-                   mov     rdi, day
+   144 00000132 [8000000000000000] 
+   145 0000013A BE28000000              mov     rsi, 40
+   146 0000013F 488B1425[00000000]      mov     rdx, [stdin]
+   147 00000147 E8(00000000)            call    fgets
+   148                                  
+   149 0000014C B800000000              mov     rax, 0
+   150 00000151 48BF-                   mov     rdi, day
+   150 00000153 [8000000000000000] 
+   151 0000015B E8(00000000)            call    strlen
+   152 00000160 C680[7F000000]00        mov [day+rax-1], byte 0
+   153                                  
+   154                                  ;output response
+   155 00000167 B800000000              mov     rax, 0
+   156 0000016C 48BF-                   mov     rdi, stringformat
+   156 0000016E [3F01000000000000] 
+   157 00000176 48BE-                   mov     rsi, day
+   157 00000178 [8000000000000000] 
+   158 00000180 E8(00000000)            call    printf
+   159                                  
+   160 00000185 B800000000              mov     rax, 0
+   161 0000018A 48BF-                   mov     rdi, stringformat
+   161 0000018C [3F01000000000000] 
+   162 00000194 48BE-                   mov     rsi, response
+   162 00000196 [A100000000000000] 
+   163 0000019E E8(00000000)            call    printf
+   164                                  
+   165                                  ;output salary Q
+   166 000001A3 B800000000              mov     rax, 0
+   167 000001A8 48BF-                   mov     rdi, stringformat
+   167 000001AA [3F01000000000000] 
+   168 000001B2 48BE-                   mov     rsi, salary
+   168 000001B4 [B300000000000000] 
+   169 000001BC E8(00000000)            call    printf
+   170                                  
+   171                                  ;input salary and delete newline created after fgets
+   172 000001C1 B800000000              mov     rax, 0
+   173 000001C6 48BF-                   mov     rdi, salary
+   173 000001C8 [B300000000000000] 
+   174 000001D0 BE28000000              mov     rsi, 40
+   175 000001D5 488B1425[00000000]      mov     rdx, [stdin]
+   176 000001DD E8(00000000)            call    fgets
+   177                                  
+   178 000001E2 B800000000              mov     rax, 0
+   179 000001E7 48BF-                   mov     rdi, salary
+   179 000001E9 [B300000000000000] 
+   180 000001F1 E8(00000000)            call    strlen
+   181 000001F6 C680[B2000000]00        mov [salary+rax-1], byte 0
+   182                                  
+   183                                  ;output 'oh,' salary, 'nice', title to complement salary
+   184 000001FD B800000000              mov     rax, 0
+   185 00000202 48BF-                   mov     rdi, stringformat
+   185 00000204 [3F01000000000000] 
+   186 0000020C 48BE-                   mov     rsi, oh
+   186 0000020E [D400000000000000] 
+   187 00000216 E8(00000000)            call    printf
+   188                                  
+   189 0000021B B800000000              mov     rax, 0
+   190 00000220 48BF-                   mov     rdi, stringformat
+   190 00000222 [3F01000000000000] 
+   191 0000022A 48BE-                   mov     rsi, salary
+   191 0000022C [B300000000000000] 
+   192 00000234 E8(00000000)            call    printf
+   193                                  
+   194 00000239 B800000000              mov     rax, 0
+   195 0000023E 48BF-                   mov     rdi, stringformat
+   195 00000240 [3F01000000000000] 
+   196 00000248 48BE-                   mov     rsi, nice
+   196 0000024A [DA00000000000000] 
+   197 00000252 E8(00000000)            call    printf
+   198                                  
+   199 00000257 B800000000              mov     rax, 0
+   200 0000025C 48BF-                   mov     rdi, stringformat
+   200 0000025E [3F01000000000000] 
+   201 00000266 48BE-                   mov     rsi, title
+   201 00000268 [2400000000000000] 
+   202 00000270 E8(00000000)            call    printf
+   203                                  
+   204                                  ;output final message
+   205 00000275 B800000000              mov     rax, 0
+   206 0000027A 48BF-                   mov     rdi, stringformat
+   206 0000027C [3F01000000000000] 
+   207 00000284 48BE-                   mov     rsi, finalMsg
+   207 00000286 [EF00000000000000] 
+   208 0000028E E8(00000000)            call    printf
+   209                                  
+   210                                  ;restore GPRs
+   211 00000293 9D                      popf
+   212 00000294 415F                    pop r15
+   213 00000296 415E                    pop r14
+   214 00000298 415D                    pop r13
+   215 0000029A 415C                    pop r12
+   216 0000029C 415B                    pop r11
+   217 0000029E 415A                    pop r10
+   218 000002A0 4159                    pop r9
+   219 000002A2 4158                    pop r8
+   220 000002A4 5E                      pop rsi
+   221 000002A5 5F                      pop rdi
+   222 000002A6 5A                      pop rdx
+   223 000002A7 59                      pop rcx
+   224 000002A8 5B                      pop rbx
+   225 000002A9 5D                      pop rbp
+   226                                  
+   227                                  ;return
+   228 000002AA 48B8-                       mov rax, username
+   228 000002AC [0000000000000000] 
+   229 000002B4 C3                          ret
