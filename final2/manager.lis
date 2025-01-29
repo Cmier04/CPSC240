@@ -1,0 +1,161 @@
+     1                                  ;Author: Christine Mier
+     2                                  ;Email: cmier@csu.fullerton.edu
+     3                                  ;Course/Section: CPSC240-17 Final Program
+     4                                  ;Date: Dec-17-2024
+     5                                  
+     6                                  extern printf
+     7                                  extern stdin
+     8                                  extern fgets
+     9                                  extern strlen
+    10                                  extern input_array
+    11                                  extern output_array
+    12                                  extern sum
+    13                                  global manager
+    14                                  array_size equ 100
+    15                                  
+    16                                  segment .data
+    17 00000000 546869732070726F67-         program db "This program will find the harmonic mean of your array.", 10, 0 
+    17 00000009 72616D2077696C6C20-
+    17 00000012 66696E642074686520-
+    17 0000001B 6861726D6F6E696320-
+    17 00000024 6D65616E206F662079-
+    17 0000002D 6F7572206172726179-
+    17 00000036 2E0A00             
+    18 00000039 456E74657220612073-         inputarr db "Enter a sequence of numbers followed by a white space. After the last input press enter followed by Control+D: ", 10, 0
+    18 00000042 657175656E6365206F-
+    18 0000004B 66206E756D62657273-
+    18 00000054 20666F6C6C6F776564-
+    18 0000005D 206279206120776869-
+    18 00000066 74652073706163652E-
+    18 0000006F 204166746572207468-
+    18 00000078 65206C61737420696E-
+    18 00000081 707574207072657373-
+    18 0000008A 20656E74657220666F-
+    18 00000093 6C6C6F776564206279-
+    18 0000009C 20436F6E74726F6C2B-
+    18 000000A5 443A200A00         
+    19 000000AA 5468657365206E756D-         outputarr db "These numbers were recieved and placed into the array:", 10, 0
+    19 000000B3 626572732077657265-
+    19 000000BC 207265636965766564-
+    19 000000C5 20616E6420706C6163-
+    19 000000CE 656420696E746F2074-
+    19 000000D7 68652061727261793A-
+    19 000000E0 0A00               
+    20 000000E2 546865206D65616E20-         sumarray db "The mean of the %ld array is %ld.", 10, 0
+    20 000000EB 6F662074686520256C-
+    20 000000F4 642061727261792069-
+    20 000000FD 7320256C642E0A00   
+    21 00000105 205468652070726F67-         return db " The program will return execution to the main function.", 10, 0
+    21 0000010E 72616D2077696C6C20-
+    21 00000117 72657475726E206578-
+    21 00000120 65637574696F6E2074-
+    21 00000129 6F20746865206D6169-
+    21 00000132 6E2066756E6374696F-
+    21 0000013B 6E2E0A00           
+    22                                  
+    23 0000013F 257300                      stringformat db "%s", 0
+    24 00000142 256C6400                    floatformat db "%ld", 0
+    25                                  
+    26                                  segment .bss
+    27 00000000 <res 320h>                  myarray resq array_size
+    28 00000320 <res 400h>                  mean resb 1024
+    29                                  
+    30                                  segment .text
+    31                                  manager:
+    32 00000000 55                      push rbp
+    33 00000001 4889E5                  mov rbp, rsp
+    34 00000004 53                      push rbx
+    35 00000005 51                      push rcx
+    36 00000006 52                      push rdx
+    37 00000007 57                      push rdi
+    38 00000008 56                      push rsi
+    39 00000009 4150                    push r8
+    40 0000000B 4151                    push r9
+    41 0000000D 4152                    push r10
+    42 0000000F 4153                    push r11
+    43 00000011 4154                    push r12
+    44 00000013 4155                    push r13
+    45 00000015 4156                    push r14
+    46 00000017 4157                    push r15
+    47 00000019 9C                      pushf
+    48                                  
+    49                                  ;output program
+    50 0000001A B800000000              mov     rax, 0
+    51 0000001F 48BF-                   mov     rdi, stringformat
+    51 00000021 [3F01000000000000] 
+    52 00000029 48BE-                   mov     rsi, program
+    52 0000002B [0000000000000000] 
+    53 00000033 E8(00000000)            call    printf
+    54                                  
+    55 00000038 B800000000              mov     rax, 0
+    56 0000003D 48BF-                   mov     rdi, stringformat
+    56 0000003F [3F01000000000000] 
+    57 00000047 48BE-                   mov     rsi, inputarr
+    57 00000049 [3900000000000000] 
+    58 00000051 E8(00000000)            call    printf
+    59                                  
+    60                                  ;get values from user by calling input_array
+    61                                  ;mov     rax, 0
+    62 00000056 48BF-                   mov     rdi, myarray
+    62 00000058 [0000000000000000] 
+    63 00000060 BE64000000              mov     rsi, array_size
+    64 00000065 E8(00000000)            call    input_array
+    65 0000006A 4989C7                  mov     r15, rax
+    66                                  
+    67                                  ;output array, confirm
+    68 0000006D B800000000              mov     rax, 0
+    69 00000072 48BF-                   mov     rdi, stringformat
+    69 00000074 [3F01000000000000] 
+    70 0000007C 48BE-                   mov     rsi, outputarr
+    70 0000007E [AA00000000000000] 
+    71 00000086 E8(00000000)            call    printf
+    72                                  
+    73                                  ;call output array
+    74 0000008B B800000000              mov     rax, 0
+    75 00000090 48BF-                   mov     rdi, myarray
+    75 00000092 [0000000000000000] 
+    76 0000009A 4C89FE                  mov     rsi, r15
+    77 0000009D E8(00000000)            call    output_array
+    78                                  
+    79                                  ;--------------------------------harmonic mean-----------------------------
+    80                                  ;output hmean
+    81 000000A2 B800000000              mov     rax, 0
+    82 000000A7 48BF-                   mov     rdi, stringformat
+    82 000000A9 [3F01000000000000] 
+    83 000000B1 48BE-                   mov     rsi, sumarray
+    83 000000B3 [E200000000000000] 
+    84 000000BB E8(00000000)            call    printf
+    85                                  
+    86                                  ;call   hmean
+    87 000000C0 B800000000              mov     rax, 0
+    88 000000C5 48BF-                   mov     rdi, mean
+    88 000000C7 [2003000000000000] 
+    89 000000CF 4C89FE                  mov     rsi, r15
+    90 000000D2 E8(00000000)            call    sum
+    91                                  
+    92                                  ;output return
+    93 000000D7 B800000000              mov     rax, 0
+    94 000000DC 48BF-                   mov     rdi, stringformat
+    94 000000DE [3F01000000000000] 
+    95 000000E6 48BE-                   mov     rsi, return
+    95 000000E8 [0501000000000000] 
+    96 000000F0 E8(00000000)            call    printf
+    97                                  
+    98                                  ;16 pops
+    99 000000F5 9D                      popf
+   100 000000F6 415F                    pop r15
+   101 000000F8 415E                    pop r14
+   102 000000FA 415D                    pop r13
+   103 000000FC 415C                    pop r12
+   104 000000FE 415B                    pop r11
+   105 00000100 415A                    pop r10
+   106 00000102 4159                    pop r9
+   107 00000104 4158                    pop r8
+   108 00000106 5E                      pop rsi
+   109 00000107 5F                      pop rdi
+   110 00000108 5A                      pop rdx
+   111 00000109 59                      pop rcx
+   112 0000010A 5B                      pop rbx
+   113 0000010B 5D                      pop rbp
+   114                                  
+   115 0000010C C3                      ret

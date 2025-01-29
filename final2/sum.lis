@@ -1,0 +1,80 @@
+     1                                  extern printf
+     2                                  extern fgets
+     3                                  extern scanf
+     4                                  extern stdin
+     5                                  extern atol
+     6                                  extern manager
+     7                                  extern input_array
+     8                                  extern output_array
+     9                                  global sort
+    10                                  global sum
+    11                                  
+    12                                  segment .data
+    13                                  
+    14                                  segment .bss
+    15                                  
+    16                                  segment .text
+    17                                  sum:
+    18                                  ;16 push
+    19 00000000 55                      push rbp
+    20 00000001 4889E5                  mov rbp, rsp
+    21 00000004 53                      push rbx
+    22 00000005 51                      push rcx
+    23 00000006 52                      push rdx
+    24 00000007 57                      push rdi
+    25 00000008 56                      push rsi
+    26 00000009 4150                    push r8
+    27 0000000B 4151                    push r9
+    28 0000000D 4152                    push r10
+    29 0000000F 4153                    push r11
+    30 00000011 4154                    push r12
+    31 00000013 4155                    push r13
+    32 00000015 4156                    push r14
+    33 00000017 4157                    push r15
+    34 00000019 9C                      pushf
+    35                                  
+    36                                  ;save all int numbers
+    37                                  
+    38                                  ;back
+    39 0000001A 4989FE                  mov     r14, rdi
+    40 0000001D 4989F7                  mov     r15, rsi        ;r15 = how many
+    41 00000020 4D31ED                  xor     r13, r13        ;r13 = loop counter
+    42                                  
+    43 00000023 4D31C0                  xor     r8, r8          ;r8 = accumalater
+    44                                  
+    45                                  beginloop:
+    46                                      ;check if array is full to end loop
+    47 00000026 4D39FD                      cmp     r13, r15         ;comparing the two to see if you can exit loop
+    48 00000029 7D0B                        jge     endloop
+    49                                  
+    50                                      ;add elements in array
+    51 0000002B F2470F583CEE                addsd   xmm15, [r14 + r13 * 8]
+    52 00000031 49FFC5                      inc     r13
+    53                                  
+    54                                      ;repeat loop
+    55 00000034 EBF0                        jmp beginloop
+    56                                  endloop:
+    57 00000036 6A00                        push    qword 0
+    58 00000038 F2440F113C24                movsd   [rsp], xmm15
+    59                                      ;mov     rax, r8        originally placed here by professor
+    60                                      ;restore sum
+    61 0000003E F20F100424                  movsd   xmm0, [rsp]
+    62 00000043 58                          pop     rax
+    63                                  
+    64 00000044 9D                      popf
+    65 00000045 415F                    pop r15
+    66 00000047 415E                    pop r14
+    67 00000049 415D                    pop r13
+    68 0000004B 415C                    pop r12
+    69 0000004D 415B                    pop r11
+    70 0000004F 415A                    pop r10
+    71 00000051 4159                    pop r9
+    72 00000053 4158                    pop r8
+    73 00000055 5E                      pop rsi
+    74 00000056 5F                      pop rdi
+    75 00000057 5A                      pop rdx
+    76 00000058 59                      pop rcx
+    77 00000059 5B                      pop rbx
+    78 0000005A 5D                      pop rbp
+    79                                  
+    80 0000005B C3                      ret

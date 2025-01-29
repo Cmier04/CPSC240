@@ -1,0 +1,102 @@
+     1                                  extern printf
+     2                                  extern scanf
+     3                                  extern heron
+     4                                  global manager
+     5                                  
+     6                                  
+     7                                  section .data
+     8 00000000 506C6561736520656E-         prompt_fmt db "Please enter 3 float numbers separated by white space.", 10, 0
+     8 00000009 746572203320666C6F-
+     8 00000012 6174206E756D626572-
+     8 0000001B 732073657061726174-
+     8 00000024 656420627920776869-
+     8 0000002D 74652073706163652E-
+     8 00000036 0A00               
+     9 00000038 546865206172656120-         result_fmt db "The area of this triangle is %f square units", 10, 0
+     9 00000041 6F6620746869732074-
+     9 0000004A 7269616E676C652069-
+     9 00000053 732025662073717561-
+     9 0000005C 726520756E6974730A-
+     9 00000065 00                 
+    10 00000066 256620256620256600          input_fmt db "%f %f %f", 0
+    11                                  
+    12                                  section .bss
+    13 00000000 ????????????????            side1 resq 1
+    14 00000008 ????????????????            side2 resq 1
+    15 00000010 ????????????????            side3 resq 1
+    16 00000018 ????????????????            area resq 1
+    17                                  
+    18                                  section .text
+    19                                  
+    20                                  manager:
+    21 00000000 55                      push rbp
+    22 00000001 4889E5                  mov rbp, rsp
+    23 00000004 53                      push rbx
+    24 00000005 51                      push rcx
+    25 00000006 52                      push rdx
+    26 00000007 57                      push rdi
+    27 00000008 56                      push rsi
+    28 00000009 4150                    push r8
+    29 0000000B 4151                    push r9
+    30 0000000D 4152                    push r10
+    31 0000000F 4153                    push r11
+    32 00000011 4154                    push r12
+    33 00000013 4155                    push r13
+    34 00000015 4156                    push r14
+    35 00000017 4157                    push r15
+    36 00000019 9C                      pushf
+    37                                  
+    38                                      ;output prompt
+    39 0000001A 48BF-                       mov rdi, prompt_fmt
+    39 0000001C [0000000000000000] 
+    40 00000024 4831C0                      xor rax, rax
+    41 00000027 E8(00000000)                call printf
+    42                                  
+    43                                      ; input three sides
+    44 0000002C 48BF-                       mov rdi, input_fmt
+    44 0000002E [6600000000000000] 
+    45 00000036 48BE-                       mov rsi, side1
+    45 00000038 [0000000000000000] 
+    46 00000040 48BA-                       mov rdx, side2
+    46 00000042 [0800000000000000] 
+    47 0000004A 48B9-                       mov rcx, side3
+    47 0000004C [1000000000000000] 
+    48 00000054 4831C0                      xor rax, rax
+    49 00000057 E8(00000000)                call scanf
+    50                                  
+    51                                      ; Call heron
+    52 0000005C F20F100425-                 movsd xmm0, [side1]
+    52 00000061 [00000000]         
+    53 00000065 F20F100C25-                 movsd xmm1, [side2]
+    53 0000006A [08000000]         
+    54 0000006E F20F101425-                 movsd xmm2, [side3]
+    54 00000073 [10000000]         
+    55 00000077 E8(00000000)                call heron
+    56 0000007C F20F110425-                 movsd [area], xmm0
+    56 00000081 [18000000]         
+    57                                  
+    58                                      ;ourput result
+    59 00000085 48BF-                       mov rdi, result_fmt
+    59 00000087 [3800000000000000] 
+    60 0000008F F20F100425-                 movsd xmm0, [area]
+    60 00000094 [18000000]         
+    61 00000098 B801000000                  mov rax, 1
+    62 0000009D E8(00000000)                call printf
+    63                                  
+    64 000000A2 9D                      popf
+    65 000000A3 415F                    pop r15
+    66 000000A5 415E                    pop r14
+    67 000000A7 415D                    pop r13
+    68 000000A9 415C                    pop r12
+    69 000000AB 415B                    pop r11
+    70 000000AD 415A                    pop r10
+    71 000000AF 4159                    pop r9
+    72 000000B1 4158                    pop r8
+    73 000000B3 5E                      pop rsi
+    74 000000B4 5F                      pop rdi
+    75 000000B5 5A                      pop rdx
+    76 000000B6 59                      pop rcx
+    77 000000B7 5B                      pop rbx
+    78 000000B8 5D                      pop rbp
+    79 000000B9 C9                          leave
+    80 000000BA C3                          ret

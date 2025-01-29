@@ -1,0 +1,94 @@
+     1                                  ;Author: Christine Mier
+     2                                  ;Email: cmier@csu.fullerton.edu
+     3                                  ;Course/Section: CPSC240-17 Final Program
+     4                                  ;Date: Dec-17-2024
+     5                                  
+     6                                  extern printf
+     7                                  extern fgets
+     8                                  extern scanf
+     9                                  extern stdin
+    10                                  extern atol
+    11                                  extern manager
+    12                                  extern input_array
+    13                                  extern output_array
+    14                                  global sort
+    15                                  global sum
+    16                                  
+    17                                  segment .data
+    18 00000000 000000000000F03F            one dq 1.0    ; Constant value of 1.0 for division
+    19                                  
+    20                                  segment .bss
+    21                                  
+    22                                  segment .text
+    23                                  sum:
+    24                                  ;16 push
+    25 00000000 55                      push rbp
+    26 00000001 4889E5                  mov rbp, rsp
+    27 00000004 53                      push rbx
+    28 00000005 51                      push rcx
+    29 00000006 52                      push rdx
+    30 00000007 57                      push rdi
+    31 00000008 56                      push rsi
+    32 00000009 4150                    push r8
+    33 0000000B 4151                    push r9
+    34 0000000D 4152                    push r10
+    35 0000000F 4153                    push r11
+    36 00000011 4154                    push r12
+    37 00000013 4155                    push r13
+    38 00000015 4156                    push r14
+    39 00000017 4157                    push r15
+    40 00000019 9C                      pushf
+    41                                  
+    42                                  ;save array pointer and size
+    43 0000001A 4989FE                  mov     r14, rdi        ; r14 = array pointer
+    44 0000001D 4989F7                  mov     r15, rsi        ; r15 = array size
+    45 00000020 4D31ED                  xor     r13, r13        ; r13 = loop counter
+    46                                  
+    47                                  ; Initialize xmm15 to 0 for accumulating reciprocals
+    48 00000023 66450FEFFF              pxor   xmm15, xmm15    ; Clear xmm15
+    49 00000028 F2440F1035-             movsd   xmm14, [rel one]
+    49 0000002D (00000000)         
+    50                                  
+    51                                  beginloop:
+    52                                      ;check if array is full to end loop
+    53 00000031 4D39FD                      cmp     r13, r15
+    54 00000034 7D19                        jge     endloop
+    55                                  
+    56                                      ; Load current number into xmm0
+    57 00000036 F2430F1004EE                movsd   xmm0, [r14 + r13 * 8]
+    58                                      
+    59                                      ; Calculate reciprocal (1/x)
+    60 0000003C F2410F10CE                  movsd   xmm1, xmm14
+    61 00000041 F20F5EC8                    divsd   xmm1, xmm0
+    62                                      
+    63                                      ; Add reciprocal to sum
+    64 00000045 F2440F58F9                  addsd   xmm15, xmm1
+    65                                      
+    66 0000004A 49FFC5                      inc     r13
+    67 0000004D EBE2                        jmp     beginloop
+    68                                  
+    69                                  endloop:
+    70 0000004F F2490F2ACF                  cvtsi2sd xmm1, r15      ; Convert array size to double
+    71 00000054 F2410F5ECF                  divsd    xmm1, xmm15    ; Calculate final harmonic mean
+    72                                      
+    73                                      ; Store result
+    74                                  
+    75 00000059 F20F10C1                    movsd   xmm0, xmm1    ; Put result in xmm0 for return
+    76                                  
+    77 0000005D 9D                      popf
+    78 0000005E 415F                    pop r15
+    79 00000060 415E                    pop r14
+    80 00000062 415D                    pop r13
+    81 00000064 415C                    pop r12
+    82 00000066 415B                    pop r11
+    83 00000068 415A                    pop r10
+    84 0000006A 4159                    pop r9
+    85 0000006C 4158                    pop r8
+    86 0000006E 5E                      pop rsi
+    87 0000006F 5F                      pop rdi
+    88 00000070 5A                      pop rdx
+    89 00000071 59                      pop rcx
+    90 00000072 5B                      pop rbx
+    91 00000073 5D                      pop rbp
+    92                                  
+    93 00000074 C3                      ret

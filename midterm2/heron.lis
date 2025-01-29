@@ -1,0 +1,73 @@
+     1                                  extern printf
+     2                                  global heron
+     3                                  
+     4                                  section .data
+     5 00000000 4572726F7220656E63-         error_msg db "Error encountered", 10, 0
+     5 00000009 6F756E74657265640A-
+     5 00000012 00                 
+     6 00000013 0000000000000040            two dq 2.0
+     7                                  
+     8                                  section .text
+     9                                  heron:
+    10 00000000 55                      push rbp
+    11 00000001 4889E5                  mov rbp, rsp
+    12 00000004 53                      push rbx
+    13 00000005 51                      push rcx
+    14 00000006 52                      push rdx
+    15 00000007 57                      push rdi
+    16 00000008 56                      push rsi
+    17 00000009 4150                    push r8
+    18 0000000B 4151                    push r9
+    19 0000000D 4152                    push r10
+    20 0000000F 4153                    push r11
+    21 00000011 4154                    push r12
+    22 00000013 4155                    push r13
+    23 00000015 4156                    push r14
+    24 00000017 4157                    push r15
+    25 00000019 9C                      pushf
+    26                                  
+    27                                      ; Save input parameters
+    28 0000001A F20F10D8                    movsd xmm3, xmm0  ; a
+    29 0000001E F20F10E1                    movsd xmm4, xmm1  ; b
+    30 00000022 F20F10EA                    movsd xmm5, xmm2  ; c
+    31                                  
+    32                                      ;Calculate s = (a + b + c) / 2
+    33 00000026 F20F58C1                    addsd xmm0, xmm1
+    34 0000002A F20F58C2                    addsd xmm0, xmm2
+    35 0000002E F20F5E0425-                 divsd xmm0, [two]  ; xmm0 now contains s
+    35 00000033 [13000000]         
+    36                                  
+    37                                      ;Calculate (s-a), (s-b), (s-c)
+    38 00000037 F20F10C8                    movsd xmm1, xmm0
+    39 0000003B F20F5CCB                    subsd xmm1, xmm3  ; s-a
+    40 0000003F F20F10D0                    movsd xmm2, xmm0
+    41 00000043 F20F5CD4                    subsd xmm2, xmm4  ; s-b
+    42 00000047 F20F10F0                    movsd xmm6, xmm0
+    43 0000004B F20F5CF5                    subsd xmm6, xmm5  ; s-c
+    44                                  
+    45                                      ;Calculate product
+    46 0000004F F20F59C1                    mulsd xmm0, xmm1  ; s * (s-a)
+    47 00000053 F20F59C2                    mulsd xmm0, xmm2  ; * (s-b)
+    48 00000057 F20F59C6                    mulsd xmm0, xmm6  ; * (s-c)
+    49                                  
+    50                                  
+    51                                      ;Calculate square root
+    52 0000005B F20F51C0                    sqrtsd xmm0, xmm0
+    53                                  
+    54 0000005F 9D                      popf
+    55 00000060 415F                    pop r15
+    56 00000062 415E                    pop r14
+    57 00000064 415D                    pop r13
+    58 00000066 415C                    pop r12
+    59 00000068 415B                    pop r11
+    60 0000006A 415A                    pop r10
+    61 0000006C 4159                    pop r9
+    62 0000006E 4158                    pop r8
+    63 00000070 5E                      pop rsi
+    64 00000071 5F                      pop rdi
+    65 00000072 5A                      pop rdx
+    66 00000073 59                      pop rcx
+    67 00000074 5B                      pop rbx
+    68 00000075 5D                      pop rbp
+    69 00000076 C9                          leave
+    70 00000077 C3                          ret

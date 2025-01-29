@@ -1,0 +1,74 @@
+     1                                  ;Author: Christine Mier
+     2                                  ;Email: cmier@csu.fullerton.edu
+     3                                  ;Course/Section: CPSC240-17 Final Program
+     4                                  ;Date: Dec-17-2024
+     5                                  
+     6                                  extern printf
+     7                                  extern manager
+     8                                  extern input_array
+     9                                  global output_array
+    10                                  
+    11                                  segment .data
+    12 00000000 256C640A00                  intform db "%ld", 10, 0
+    13                                  
+    14                                  segment .bss
+    15                                  
+    16                                  segment .text
+    17                                  output_array:
+    18                                  ;16 pushes
+    19 00000000 55                      push rbp
+    20 00000001 4889E5                  mov rbp, rsp
+    21 00000004 53                      push rbx
+    22 00000005 51                      push rcx
+    23 00000006 52                      push rdx
+    24 00000007 57                      push rdi
+    25 00000008 56                      push rsi
+    26 00000009 4150                    push r8
+    27 0000000B 4151                    push r9
+    28 0000000D 4152                    push r10
+    29 0000000F 4153                    push r11
+    30 00000011 4154                    push r12
+    31 00000013 4155                    push r13
+    32 00000015 4156                    push r14
+    33 00000017 4157                    push r15
+    34 00000019 9C                      pushf
+    35                                  
+    36                                  ;store data
+    37 0000001A 4989FE                  mov     r14, rdi
+    38 0000001D 4989F7                  mov     r15, rsi        ;rsi = how many
+    39 00000020 4D31ED                  xor     r13, r13        ;r13 = index of array, increases by 1
+    40                                  
+    41                                  beginloop:
+    42 00000023 4D39FD                      cmp     r13, r15        ;checks if r13 > r15
+    43 00000026 7D1D                        jge     outsideloop
+    44                                  
+    45                                      ;output integer from array
+    46 00000028 B800000000                  mov     rax, 0
+    47 0000002D 48BF-                       mov     rdi, intform
+    47 0000002F [0000000000000000] 
+    48 00000037 4B8B34EE                    mov     rsi, [r14 + 8 * r13]
+    49 0000003B E8(00000000)                call    printf
+    50 00000040 49FFC5                      inc     r13             ;same as r13++, checks if it has reached limit
+    51 00000043 EBDE                        jmp     beginloop
+    52                                  
+    53                                  outsideloop:
+    54 00000045 B800000000                  mov     rax, 0
+    55                                  
+    56                                      ;16 pops
+    57 0000004A 9D                          popf
+    58 0000004B 415F                        pop r15
+    59 0000004D 415E                        pop r14
+    60 0000004F 415D                        pop r13
+    61 00000051 415C                        pop r12
+    62 00000053 415B                        pop r11
+    63 00000055 415A                        pop r10
+    64 00000057 4159                        pop r9
+    65 00000059 4158                        pop r8
+    66 0000005B 5E                          pop rsi
+    67 0000005C 5F                          pop rdi
+    68 0000005D 5A                          pop rdx
+    69 0000005E 59                          pop rcx
+    70 0000005F 5B                          pop rbx
+    71 00000060 5D                          pop rbp
+    72                                  
+    73 00000061 C3                          ret
